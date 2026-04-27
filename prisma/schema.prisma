@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum JobStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  SHORTLISTED
+  REJECTED
+  SELECTED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String?  @unique
+  mobile    String   @unique
+  password  String?
+  role      UserRole @default(USER)
+
+  isSubscribed Boolean @default(false)
+
+  subscriptionPlan      String?
+  subscriptionStartedAt DateTime?
+  subscriptionExpiresAt DateTime?
+
+  atsServiceBought   Boolean   @default(false)
+  atsServiceBoughtAt DateTime?
+
+  applications Application[]
+  savedJobs    SavedJob[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id          String @id @default(uuid())
+  title       String
+  companyName String
+  country     String
+  city        String?
+  category    String
+  salary      String
+
+  vacancies  Int     @default(1)
+  experience String?
+
+  description      String
+  responsibilities Json
+  benefits         Json
+
+  imageUrl       String?
+  companyLogoUrl String?
+
+  isHot    Boolean @default(false)
+  isLatest Boolean @default(true)
+
+  expiryDate DateTime?
+  status     JobStatus @default(ACTIVE)
+
+  applications Application[]
+  savedJobs    SavedJob[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Application {
+  id     String            @id @default(uuid())
+  userId String
+  jobId  String
+  status ApplicationStatus @default(APPLIED)
+
+  profileData Json
+  documents   Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, jobId])
+}
+
+model SavedJob {
+  id     String @id @default(uuid())
+  userId String
+  jobId  String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+}
+
+model SuccessStory {
+  id           String  @id @default(uuid())
+  name         String
+  country      String
+  jobTitle     String
+  localSalary  String
+  inrSalary    String
+  story        String
+  workingSince String
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Banner {
+  id       String  @id @default(uuid())
+  title    String
+  subtitle String?
+  imageUrl String
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id       String  @id @default(uuid())
+  name     String
+  imageUrl String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+}
+
+model Country {
+  id       String  @id @default(uuid())
+  name     String
+  imageUrl String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+}
